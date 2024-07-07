@@ -26,29 +26,51 @@ jobs:
       working-directory: ./bot-source/CustomerServiceBot
    
     - name: dotnet publish
-      run: dotnet publish -c Release -o ${{github.workspace}}/myapp
+      run: dotnet publish -c Release -o ${{github.workspace}}/publish
       working-directory: ./bot-source/CustomerServiceBot
    
     - name: Update appsettings.json
       uses: microsoft/variable-substitution@v1
       with:
-        files: '${{github.workspace}}/myapp/appsettings.json'
+        files: '${{github.workspace}}/publish/appsettings.json'
       env:
         MicrosoftAppType: ${{ secrets.MICROSOFT_APP_TYPE }}
         MicrosoftAppId: ${{ secrets.MICROSOFT_APP_ID }}
         MicrosoftAppPassword: ${{ secrets.MICROSOFT_APP_PASSWORD }}
         MicrosoftAppTenantId: ${{ secrets.MICROSOFT_APP_TENANT_ID }}
 
+    - name: Add web.config
+      run: |
+        echo '<?xml version="1.0" encoding="utf-8"?>
+        <configuration>
+          <location path="." inheritInChildApplications="false">
+            <system.webServer>
+              <handlers>
+                <add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" />
+              </handlers>
+              <aspNetCore processPath="dotnet" arguments=".\CustomerServiceBot.dll" stdoutLogEnabled="false" stdoutLogFile="\\?\%home%\LogFiles\stdout" hostingModel="inprocess" />
+            </system.webServer>
+          </location>
+        </configuration>' > ${{github.workspace}}/publish/web.config
+
     - name: List publish directory contents
-      run: ls -R ${{github.workspace}}/myapp
+      run: ls -R ${{github.workspace}}/publish
 
     - name: Generate deployment package
-      run: zip -r deploy.zip . -x "*.git*"
-      working-directory: ${{github.workspace}}/myapp
+      run: zip -r deploy.zip .
+      working-directory: ${{github.workspace}}/publish
    
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        package: ${{github.workspace}}/myapp/deploy.zip
+        package: ${{github.workspace}}/publish/deploy.zip
+
+    - name: List deployed files
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        script: |
+          ls -R /home/site/wwwroot
