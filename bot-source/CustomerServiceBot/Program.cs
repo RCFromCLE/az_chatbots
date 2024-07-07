@@ -13,7 +13,7 @@ builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFramew
 builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
 builder.Services.AddTransient<IBot, EchoBot>();
 
-var app = WebApplication.Create(args);
+var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -26,11 +26,13 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.MapGet("/api/test", () => "Hello from the bot!");
 
 app.Run();
+
 public class EchoBot : ActivityHandler
 {
     protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
