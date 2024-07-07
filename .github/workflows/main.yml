@@ -25,10 +25,11 @@ jobs:
       run: dotnet build --configuration Release CustomerServiceBot.csproj
       working-directory: ./bot-source/CustomerServiceBot
    
-    - name: dotnet publish
-      run: dotnet publish -c Release -o ${{github.workspace}}/publish
-      working-directory: ./bot-source/CustomerServiceBot
-   
+- name: dotnet publish
+  run: |
+    dotnet publish -c Release -o ${{github.workspace}}/publish
+    cp ${{github.workspace}}/publish/*.runtimeconfig.json ${{github.workspace}}/publish/
+       
     - name: Update appsettings.json
       uses: microsoft/variable-substitution@v1
       with:
