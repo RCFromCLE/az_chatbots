@@ -41,15 +41,17 @@ jobs:
 
     - name: List publish directory contents
       run: ls -R ${{github.workspace}}/myapp
+
+    - name: Generate deployment package
+      run: zip -r deploy.zip . -x "*.git*"
+      working-directory: ${{github.workspace}}/myapp
    
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        package: ${{github.workspace}}/myapp
-        clean: true
-        restart: true
+        package: ${{github.workspace}}/myapp/deploy.zip
 
     - name: Output Publish Profile Info
       run: |
