@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
@@ -7,51 +7,30 @@ using Microsoft.Bot.Schema;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddHttpClient().AddControllers().AddNewtonsoftJson();
+builder.Services.AddControllers().AddNewtonsoftJson();
+builder.Services.AddHttpClient();
 builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
 builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
 builder.Services.AddTransient<IBot, EchoBot>();
 
-var app = builder.Build();
+var app = WebApplication.Create(args);
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
-}
-else
-{
-    app.UseExceptionHandler(errorApp =>
-    {
-        errorApp.Run(async context =>
-        {
-            var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-            var exception = exceptionHandlerPathFeature?.Error;
-
-            // Log the exception
-            var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
-            logger.LogError(exception, "An unhandled exception occurred.");
-
-            await context.Response.WriteAsync("An error occurred.");
-        });
-    });
+    app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
 
-// Comment out HTTPS redirection for now
 // app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
 
-// Add this line to map a simple test endpoint
 app.MapGet("/api/test", () => "Hello from the bot!");
 
 app.Run();
-
 public class EchoBot : ActivityHandler
 {
     protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
