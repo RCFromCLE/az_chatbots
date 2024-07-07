@@ -1,9 +1,12 @@
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
+using Microsoft.Bot.Connector;
 using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Bot.Schema;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +26,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
@@ -32,9 +34,20 @@ app.MapControllers();
 
 app.MapGet("/api/test", () => "Hello from the bot!");
 
+// Token endpoint for Web Chat
+app.MapGet("/api/token", async () => 
+{
+    var appId = builder.Configuration["MicrosoftAppId"];
+    var appPassword = builder.Configuration["MicrosoftAppPassword"];
+    var credentials = new MicrosoftAppCredentials(appId, appPassword);
+    var tokenResponse = await new OAuthClient(credentials).GetTokenAsync();
+
+    return Results.Json(new { token = tokenResponse.Token });
+});
+
 app.Run();
 
-public class EchoBot : ActivityHandler
+public class EchoBot : ActivityHandler, IBot
 {
     protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
     {
