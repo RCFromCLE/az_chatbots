@@ -16,7 +16,6 @@ public class BotController : ControllerBase
     }
 
     [HttpPost]
-    [HttpGet]
     public async Task PostAsync()
     {
         await _adapter.ProcessAsync(Request, Response, _bot);
