@@ -52,11 +52,3 @@ jobs:
         app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         package: ${{github.workspace}}/myapp/deploy.zip
-
-    - name: Output Publish Profile Info
-      run: |
-        echo "Publish Profile Content Length: ${#PUBLISH_PROFILE}"
-        echo "First 100 characters of Publish Profile:"
-        echo "${PUBLISH_PROFILE:0:100}"
-      env:
-        PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
