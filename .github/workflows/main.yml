@@ -12,19 +12,19 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-- name: Set up .NET Core
-  uses: actions/setup-dotnet@v1
-  with:
-    dotnet-version: |
-      6.0.x
-      8.0.x
-              
+    - name: Set up .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: |
+          6.0.x
+          8.0.x
+    
     - name: Build with dotnet
       run: dotnet build --configuration Release
-      
+    
     - name: dotnet publish
       run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
-      
+    
     - name: Update appsettings.json
       uses: microsoft/variable-substitution@v1
       with:
@@ -34,10 +34,10 @@ jobs:
         MicrosoftAppId: ${{ secrets.MICROSOFT_APP_ID }}
         MicrosoftAppPassword: ${{ secrets.MICROSOFT_APP_PASSWORD }}
         MicrosoftAppTenantId: ${{ secrets.MICROSOFT_APP_TENANT_ID }}
-      
+    
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE  }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         package: ${{env.DOTNET_ROOT}}/myapp
