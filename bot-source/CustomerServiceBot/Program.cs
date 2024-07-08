@@ -1,12 +1,20 @@
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
-using Microsoft.Bot.Connector;
 using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Bot.Schema;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.Json;
+using System;
+using System.IO;
+using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,20 +37,20 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.MapGet("/api/test", () => "Hello from the bot!");
 
 // Token endpoint for Web Chat
-app.MapGet("/api/token", async () => 
+app.MapGet("/api/token", async context =>
 {
     var appId = builder.Configuration["MicrosoftAppId"];
     var appPassword = builder.Configuration["MicrosoftAppPassword"];
     var credentials = new MicrosoftAppCredentials(appId, appPassword);
-    var tokenResponse = await new OAuthClient(credentials).GetTokenAsync();
-
-    return Results.Json(new { token = tokenResponse.Token });
+    var tokenResponse = await credentials.GetTokenAsync();
+    var jsonResponse = JsonSerializer.Serialize(new { token = tokenResponse });
+    context.Response.ContentType = "application/json";
+    await context.Response.WriteAsync(jsonResponse);
 });
 
 app.Run();
